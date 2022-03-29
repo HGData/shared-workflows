@@ -1,0 +1,83 @@
+name: Build & Publish
+
+on:
+  workflow_call:
+    inputs:
+
+      RUNS_ON:
+        description: Platforms to execute on, in format of a string JSON array
+        type: string
+        default: '["ubuntu-latest"]'
+      
+      PYTHON_VERSION: 
+        description: Python version numbers to build with, in format of a numeric JSON array
+        type: string
+        default: '[ 3.7 ]'
+      
+      ARTIFACTORY_REPOSITORY:
+        description: An artifactory PyPi repository for both artifact publication and retrieval (just the name)
+        type: string
+        default: pypi-snapshot
+
+      RELEASE_VERSION:
+        description: A PEP440-valid version for a Python artifact - Will be used to publish
+        type: string
+      
+      PUBLISH_COMMAND:
+        description: Override this if you want to specify how to publish
+        type: string
+        default: |
+          python setup.py sdist bdist_wheel bdist_egg
+          twine upload --verbose --non-interactive dist/*
+
+    secrets:
+      
+      ARTIFACTORY_USER:
+        description: Username from an artifactory user login
+      
+      ARTIFACTORY_PASSWORD:
+        description: Password from an artifactory user login
+
+jobs:
+  
+  #
+  # Publish to Artifactory using all sorts of possible architectures (uses twine for secure upload via SSL)
+  #
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJSON(inputs.PYTHON_VERSION) }}
+        runs-on: ${{ fromJSON(inputs.RUNS_ON) }}
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+
+      - name: Checkout
+        uses: hgdata/checkout@v2
+
+      - name: Setup Python
+        uses: hgdata/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup pip to default to ${{ inputs.ARTIFACTORY_REPOSITORY }}
+        run: |
+          mkdir -p ~/.pip/
+          cat <<EOF > ~/.pip/pip.conf
+          [global]
+          index-url = https://${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PASSWORD }}@hgdata.jfrog.io/artifactory/api/pypi/${{ inputs.ARTIFACTORY_REPOSITORY }}/simple
+          EOF
+
+      - name: Install build dependencies
+        run: |
+          echo 'Build deps:'
+          python -m pip install --upgrade pip setuptools wheel twine
+
+      - name: Build & publish version to ${{ inputs.ARTIFACTORY_REPOSITORY }}
+        env:
+          TWINE_REPOSITORY_URL: https://hgdata.jfrog.io/artifactory/api/pypi/${{ inputs.ARTIFACTORY_REPOSITORY }}
+          TWINE_USERNAME: ${{ secrets.ARTIFACTORY_USER }}
+          TWINE_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          RELEASE_VERSION: ${{ inputs.RELEASE_VERSION }}
+        run: ${{ inputs.PUBLISH_COMMAND }}
+
