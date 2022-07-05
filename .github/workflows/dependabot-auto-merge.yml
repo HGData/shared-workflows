@@ -12,6 +12,7 @@ jobs:
     name: Define matrix
     runs-on: ubuntu-latest
     # if: ${{ github.actor == 'dependabot[bot]' }}
+    if: always()
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix}}
     steps:
