@@ -8,7 +8,9 @@ A repository to house GitHub Actions [reusable workflows](https://docs.github.co
 
 ## Usage
 
-Consume shared workflows as a discrete job
+### Dependabot
+
+`dependabot-auto-merge.yml`:
 ```yaml
 jobs:
   dependabot:
