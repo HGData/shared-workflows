@@ -23,8 +23,7 @@ jobs:
       id: matrix
       run: |
         wget -q https://github.com/mikefarah/yq/releases/download/v4.25.3/yq_linux_amd64 -O yq && chmod +x yq
-        config=$(yq -o=json -I=0 .github/dependabot_auto_merge.yml)
-        echo '::set-output name=config::$config'
+        echo '::set-output name=config::$(yq -o=json -I=0 .github/dependabot_auto_merge.yml)'
 
   dependabot:
     name: Dependabot
