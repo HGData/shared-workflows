@@ -34,7 +34,7 @@ jobs:
     # if: ${{ github.actor == 'dependabot[bot]' }}
     if: always()
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.matrx) }}
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
     permissions:
       pull-requests: write
       issues: write
