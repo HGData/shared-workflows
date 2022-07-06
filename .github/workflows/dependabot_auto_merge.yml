@@ -1,0 +1,70 @@
+name: Dependabot auto-merge
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        description: Privileged GitHub PAT
+        required: true
+    
+jobs:
+  setup:
+    name: Define matrix
+    runs-on: ubuntu-latest
+    # if: ${{ github.actor == 'dependabot[bot]' }}
+    if: always()
+    outputs:
+      config: ${{ steps.matrix.outputs.config}}
+    steps:
+    - name: Checkout
+      uses: hgdata/checkout@v2
+        
+    - name: Output configuration matrix
+      id: matrix
+      run: |
+        wget -q https://github.com/mikefarah/yq/releases/download/v4.25.3/yq_linux_amd64 -O yq && chmod +x yq
+        echo "::set-output name=config::$(yq -o=json -I=0 .github/dependabot_auto_merge.yml)"
+
+  dependabot:
+    name: Dependabot
+    runs-on: ubuntu-latest
+    needs: setup
+    # if: ${{ github.actor == 'dependabot[bot]' }}
+    if: always()
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.setup.outputs.config) }}
+    permissions:
+      pull-requests: write
+      issues: write
+      repository-projects: write
+      contents: write
+    steps:
+    # - name: Dependabot metadata
+    #   id: metadata
+    #   uses: hgdata/dependabot-metadata@v1
+    #   with:
+    #     github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
+      if: ${{ contains(matrix.types, 'patch') }}
+      run: echo "patch release"
+
+    - name: Auto-merge Dependabot ${{ matrix.ecosystem }} minor releases
+      if: ${{ contains(matrix.types, 'minor') }}
+      run: echo "minor release"
+
+
+    # - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
+    #   if: ${{ contains(matrix.types, 'patch') }}
+    #   run: gh pr merge --auto --merge "$PR_URL"
+    #   env:
+    #     PR_URL: ${{ github.event.pull_request.html_url }}
+    #     GITHUB_TOKEN: ${{ secrets.token }}
+
+    # - name: Auto-merge Dependabot ${{ matrix.ecosystem }} minor releases
+    #   if: ${{ contains(matrix.types, 'minor') }}
+    #   run: gh pr merge --auto --merge "$PR_URL"
+    #   env:
+    #     PR_URL: ${{ github.event.pull_request.html_url }}
+    #     GITHUB_TOKEN: ${{ secrets.token }}
