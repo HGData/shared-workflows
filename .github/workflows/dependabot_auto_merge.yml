@@ -12,18 +12,12 @@ jobs:
     name: Define matrix
     runs-on: ubuntu-latest
     # if: ${{ github.actor == 'dependabot[bot]' }}
-    if: always() # Remove
+    if: always()
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix}}
     steps:
     - name: Checkout
       uses: hgdata/checkout@v2
-
-    # - name: Source config
-    #   id: config
-    #   run: |
-    #     config=$(cat .github/dependabot_auto_merge.yml)
-    #     echo "::set-output name=yaml::$config"
         
     - name: Output matrix
       id: matrix
@@ -37,7 +31,8 @@ jobs:
     name: Dependabot
     runs-on: ubuntu-latest
     needs: setup
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    # if: ${{ github.actor == 'dependabot[bot]' }}
+    if: always()
     strategy:
       matrix: ${{ fromJson(needs.setup.outputs.matrx) }}
     permissions:
@@ -54,14 +49,23 @@ jobs:
 
     - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
       if: ${{ contains(matrix.types, 'patch') }}
-      run: gh pr merge --auto --merge "$PR_URL"
-      env:
-        PR_URL: ${{ github.event.pull_request.html_url }}
-        GITHUB_TOKEN: ${{ secrets.token }}
+      run: echo "patch release"
 
     - name: Auto-merge Dependabot ${{ matrix.ecosystem }} minor releases
       if: ${{ contains(matrix.types, 'minor') }}
-      run: gh pr merge --auto --merge "$PR_URL"
-      env:
-        PR_URL: ${{ github.event.pull_request.html_url }}
-        GITHUB_TOKEN: ${{ secrets.token }}
+      run: echo "minor release"
+
+
+    # - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
+    #   if: ${{ contains(matrix.types, 'patch') }}
+    #   run: gh pr merge --auto --merge "$PR_URL"
+    #   env:
+    #     PR_URL: ${{ github.event.pull_request.html_url }}
+    #     GITHUB_TOKEN: ${{ secrets.token }}
+
+    # - name: Auto-merge Dependabot ${{ matrix.ecosystem }} minor releases
+    #   if: ${{ contains(matrix.types, 'minor') }}
+    #   run: gh pr merge --auto --merge "$PR_URL"
+    #   env:
+    #     PR_URL: ${{ github.event.pull_request.html_url }}
+    #     GITHUB_TOKEN: ${{ secrets.token }}
