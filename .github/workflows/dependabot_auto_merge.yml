@@ -19,18 +19,19 @@ jobs:
     - name: Checkout
       uses: hgdata/checkout@v2
 
-    - name: Source config
-      id: config
-      run: |
-        config=$(cat .github/dependabot_auto_merge.yml)
-        echo "::set-output name=yaml::$config"
+    # - name: Source config
+    #   id: config
+    #   run: |
+    #     config=$(cat .github/dependabot_auto_merge.yml)
+    #     echo "::set-output name=yaml::$config"
         
     - name: Output matrix
       id: matrix
       run: |
-        json=${{ toJson(steps.config.outputs.yaml) }}
-        echo $json
-        echo "::set-output name=matrix::$json"
+        wget https://github.com/mikefarah/yq/releases/download/v4.25.3/yq_linux_amd64 -O yq && chmod +x yq
+        config=$(yq r -j .github/dependabot_auto_merge.yml)
+        echo $config
+        echo "::set-output name=matrix::$config"
 
   dependabot:
     name: Dependabot
