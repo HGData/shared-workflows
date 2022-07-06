@@ -22,7 +22,7 @@ jobs:
     - name: Output configuration matrix
       id: matrix
       run: |
-        config='[{"ecosystem": "github-actions","types": ["patch"]}]'
+        config='{"include": [{"ecosystem": "github-actions","types": ["patch"]}]}'
         echo "::set-output name=config::$config"
 
   dependabot:
