@@ -24,7 +24,6 @@ jobs:
       run: |
         wget -q https://github.com/mikefarah/yq/releases/download/v4.25.3/yq_linux_amd64 -O yq && chmod +x yq
         config=$(yq -o=json .github/dependabot_auto_merge.yml)
-        echo $config
         echo "::set-output name=config::$config"
 
   dependabot:
@@ -34,8 +33,7 @@ jobs:
     # if: ${{ github.actor == 'dependabot[bot]' }}
     if: always()
     strategy:
-      matrix: 
-        config: ${{ fromJson(needs.setup.outputs.config) }}
+      matrix: ${{ fromJson(needs.setup.outputs.config) }}
     permissions:
       pull-requests: write
       issues: write
@@ -48,12 +46,12 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Auto-merge Dependabot ${{ matrix.config.ecosystem }} patch releases  
-      if: ${{ contains(matrix.config.types, 'patch') }}
+    - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
+      if: ${{ contains(matrix.types, 'patch') }}
       run: echo "patch release"
 
-    - name: Auto-merge Dependabot ${{ matrix.config.ecosystem }} minor releases
-      if: ${{ contains(matrix.config.types, 'minor') }}
+    - name: Auto-merge Dependabot ${{ matrix.ecosystem }} minor releases
+      if: ${{ contains(matrix.types, 'minor') }}
       run: echo "minor release"
 
 
