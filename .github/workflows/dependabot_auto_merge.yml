@@ -12,7 +12,7 @@ jobs:
     name: Define matrix
     runs-on: ubuntu-latest
     # if: ${{ github.actor == 'dependabot[bot]' }}
-    if: always()
+    if: always() # Remove
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix}}
     steps:
@@ -29,6 +29,7 @@ jobs:
       id: matrix
       run: |
         json=${{ toJson(steps.config.outputs.yaml) }}
+        echo $json
         echo "::set-output name=matrix::$json"
 
   dependabot:
