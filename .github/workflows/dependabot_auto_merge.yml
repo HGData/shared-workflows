@@ -22,8 +22,9 @@ jobs:
     - name: Output configuration matrix
       id: matrix
       run: |
-        config='{"include": [{"ecosystem": "github-actions","types": ["patch"]}]}'
-        echo "::set-output name=config::$config"
+        wget -q https://github.com/mikefarah/yq/releases/download/v4.25.3/yq_linux_amd64 -O yq && chmod +x yq
+        config=$(yq -o=json -I=0 .github/dependabot_auto_merge.yml)
+        echo '::set-output name=config::$config'
 
   dependabot:
     name: Dependabot
@@ -32,18 +33,19 @@ jobs:
     # if: ${{ github.actor == 'dependabot[bot]' }}
     if: always()
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.config) }}
+      matrix:
+        include: ${{ fromJson(needs.setup.outputs.config) }}
     permissions:
       pull-requests: write
       issues: write
       repository-projects: write
       contents: write
     steps:
-    - name: Dependabot metadata
-      id: metadata
-      uses: hgdata/dependabot-metadata@v1
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Dependabot metadata
+    #   id: metadata
+    #   uses: hgdata/dependabot-metadata@v1
+    #   with:
+    #     github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Auto-merge Dependabot ${{ matrix.ecosystem }} patch releases  
       if: ${{ contains(matrix.types, 'patch') }}
