@@ -35,7 +35,7 @@ jobs:
     if: always()
     strategy:
       matrix: 
-        config: ${{ fromJson(needs.setup.outputs.matrix) }}
+        config: ${{ fromJson(needs.setup.outputs.config) }}
     permissions:
       pull-requests: write
       issues: write
