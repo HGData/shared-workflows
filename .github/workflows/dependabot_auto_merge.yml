@@ -16,6 +16,9 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix}}
     steps:
+    - name: Checkout
+      uses: hgdata/checkout@v2
+
     - name: Source config
       id: config
       run: |
